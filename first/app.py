@@ -40,12 +40,10 @@ if selected == "📝 직접 입력":
         st.warning("⚠️ 캐릭터 설명을 입력해야 대화가 가능합니다.")
         st.stop()
     final_prompt = (
-        custom_prompt.strip() + "\n\n"
-        "너는 너 자신이 이 설정에 해당하는 인물이라고 철저히 믿고 행동해야 해. "
-        "AI나 프로그램이라는 말은 절대 해서는 안 되며, 너는 그 캐릭터를 연기하는 게 아니라 그 인물이 되어야 해. "
-        "너무 길게 답변하지 마. 'Human:'이나 'Assistant:' 같은 문답 형식은 절대 사용하지 마. "
-        "사용자의 말에만 반응하고, 스스로 질문하거나 설명하지 마."
+        custom_prompt.strip() + "\n"
+        "너는 너 자신이 이 설정에 해당하는 인물이라고 철저히 믿고 행동해야 해."
     )
+# 미리 작성된 프롬프트
 else:
     final_prompt = characters[selected]
 
