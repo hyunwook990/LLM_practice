@@ -3,15 +3,19 @@ import chromadb
 import requests
 import json
 
+# 임베딩 모델 및 벡터DB 생성
 embedding_model = SentenceTransformer("snunlp/KR-SBERT-V40K-klueNLI-augSTS")
 client = chromadb.PersistentClient("./chromadb")
 collection_nara = client.get_or_create_collection("character_background_shikamaru")
 
+# 외부문서 불러오기
 with open("characters/nara.json", "r", encoding="utf-8") as f:
     nara_character = json.load(f)
 
+# 벡터화
 embeddings_nara = embedding_model.encode(nara_character).tolist()
 
+# 콜렉션에 저장
 collection_exist = collection_nara.get(ids=["doc_0"])
 
 if not collection_exist["documents"]:
@@ -21,9 +25,11 @@ if not collection_exist["documents"]:
     ids=[f"doc_{i}" for i in range(len(nara_character))]
 )
 
+# 사용자 입력을 받아 벡터화 진행
 question = input("나: ")
 query_vector = embedding_model.encode(question).tolist()
 
+# 벡터DB에서 코사인 유사도 기반으로 검색
 search_result = collection_nara.query(query_embeddings=[query_vector], n_results=3)
 
 retrieved_contexts = search_result["documents"][0]
