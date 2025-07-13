@@ -23,7 +23,7 @@ if not collection.get(ids=["doc_0"])["documents"]:
     )
 
 # Streamlit UI
-st.title("🧠 시카마루와 대화하기")
+st.title("캐릭터와 대화하기")
 question = st.text_input("나: ", placeholder="질문을 입력해보세요!")
 
 if st.button("시카마루에게 질문하기") and question:
@@ -58,5 +58,5 @@ if st.button("시카마루에게 질문하기") and question:
     )
 
     answer = response.json()["response"]
-    st.markdown("### 🗨️ 시카마루:")
+    st.markdown("### 시카마루:")
     st.write(answer)
