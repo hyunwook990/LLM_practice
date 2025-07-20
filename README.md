@@ -17,3 +17,10 @@
 - Chroma 사용
 ##### Ollama
 - 로컬 환경에서 구동하기 위함
+
+# 2025-07-20
+- Ollama를 사용해 로컬에서 LLM 구동
+- EEVE-Korean-10.8B 모델 사용
+- 임베딩 모델: snunlp/KR-SBERT-V40K-klueNLI-augSTS 사용
+- 벡터DB: chromadb 사용
+- 나무위키의 내용을 외부문서로 만들어 RAG구축
