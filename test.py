@@ -3,28 +3,29 @@ from langchain_ollama import ChatOllama
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain.agents import AgentType, initialize_agent, load_tools
 
 # ollama 기본 세팅
-chat_history = []
+# chat_history = []
 
-while True:
-    user_input = input("당신: ")
+# while True:
+#     user_input = input("당신: ")
 
-    if user_input == "종료":
-        break
+#     if user_input == "종료":
+#         break
 
-    chat_history.append({"role": "user", "content": user_input})
+#     chat_history.append({"role": "user", "content": user_input})
 
-    response = ollama.chat(
-        model="EEVE-Korean-10.8B",
-        messages=chat_history
-    )
+#     response = ollama.chat(
+#         model="EEVE-Korean-10.8B",
+#         messages=chat_history
+#     )
 
-    print("EEVE: ", response['message']['content'])
+#     print("EEVE: ", response['message']['content'])
 
-    chat_history.append({"role": "assistant", "content": response['message']['content']})
+#     chat_history.append({"role": "assistant", "content": response['message']['content']})
 
-# 대화 기록
+# 대화 기록 저장
 class InMemoryHistory (BaseChatMessageHistory):
     def __init__(self):
         self.messages = []
@@ -47,9 +48,9 @@ def get_by_session_id(session_id):
     return store[session_id]
 
 # 사용법 예시
-history_test = get_by_session_id('test')
-history_test.add_messages(['hello', 'good mornig', 'how are you'])
-history_test.add_messages(['I am fine', 'Thank you'])
+# history_test = get_by_session_id('test')
+# history_test.add_messages(['hello', 'good mornig', 'how are you'])
+# history_test.add_messages(['I am fine', 'Thank you'])
 
 # prompt 작성 예시
 prompt = ChatPromptTemplate.from_messages([
@@ -64,7 +65,7 @@ model = ChatOllama(model="EEVE-Korean-10.8B", temperature=.7)
 # prompt, model을 chain으로 묶음
 chain = prompt | model
 
-# chain+대화내역 저장
+# chain
 chain_with_history = RunnableWithMessageHistory(
     chain,
     get_session_history=get_by_session_id,
@@ -78,3 +79,16 @@ response = chain_with_history.invoke(
 )
 
 print(response)
+
+# Agent
+tools = load_tools(['wikipedia', 'llm-math'], llm = model)
+
+agent = initialize_agent(
+    tools,
+    model,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    handle_parsing_error=True,
+    verbose=True
+)
+
+print(agent.invoke('애니매이션 나루토의 등장인물 시카마루에 대해 설명해줘'))
