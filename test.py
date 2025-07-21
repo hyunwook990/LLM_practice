@@ -4,6 +4,9 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain.agents import AgentType, initialize_agent, load_tools
+from sentence_transformers import SentenceTransformer
+import chromadb
+import json
 
 # ollama 기본 세팅
 # chat_history = []
@@ -24,6 +27,32 @@ from langchain.agents import AgentType, initialize_agent, load_tools
 #     print("EEVE: ", response['message']['content'])
 
 #     chat_history.append({"role": "assistant", "content": response['message']['content']})
+
+# 임베딩 모델 설정
+embedding_model = SentenceTransformer("snunlp/KR-SBERT-V40K-klueNLI-augSTS")
+client = chromadb.PersistentClient("./chromadb")
+collection = client.get_or_create_collection("RAG_doc")
+
+with open ("characters/nara.json", "r", encoding="utf-8") as f:
+    RAG_doc = json.load(f)
+
+RAG_vector = embedding_model.encode(RAG_doc)
+
+collection_exist = collection.get(ids=["doc_0"])
+
+if not collection_exist["documents"]:
+    collection.add(
+        documents=RAG_doc,
+        embeddings=RAG_vector,
+        ids = [f"doc_{i}" for i in range(len(RAG_doc))]
+    )
+question = input("나:")
+query_vector = embedding_model.encode(question).tolist()
+
+search_vectorDB = collection.query(query_embeddings=[query_vector], n_results=3)
+
+retrieved_contexts = search_vectorDB['documents'][0]
+context_str = "\n".join(retrieved_contexts)
 
 # 대화 기록 저장
 class InMemoryHistory (BaseChatMessageHistory):
