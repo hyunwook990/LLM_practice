@@ -1,32 +1,10 @@
-import ollama
 from langchain_ollama import ChatOllama
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain.agents import AgentType, initialize_agent, load_tools
 from sentence_transformers import SentenceTransformer
 import chromadb
 import json
-
-# ollama 기본 세팅
-# chat_history = []
-
-# while True:
-#     user_input = input("당신: ")
-
-#     if user_input == "종료":
-#         break
-
-#     chat_history.append({"role": "user", "content": user_input})
-
-#     response = ollama.chat(
-#         model="EEVE-Korean-10.8B",
-#         messages=chat_history
-#     )
-
-#     print("EEVE: ", response['message']['content'])
-
-#     chat_history.append({"role": "assistant", "content": response['message']['content']})
 
 # 임베딩 모델 설정
 embedding_model = SentenceTransformer("snunlp/KR-SBERT-V40K-klueNLI-augSTS")
@@ -53,6 +31,7 @@ search_vectorDB = collection.query(query_embeddings=[query_vector], n_results=3)
 
 retrieved_contexts = search_vectorDB['documents'][0]
 context_str = "\n".join(retrieved_contexts)
+print(retrieved_contexts)
 
 # 대화 기록 저장
 class InMemoryHistory (BaseChatMessageHistory):
@@ -76,17 +55,12 @@ def get_by_session_id(session_id):
         store[session_id] = InMemoryHistory()
     return store[session_id]
 
-# 사용법 예시
-# history_test = get_by_session_id('test')
-# history_test.add_messages(['hello', 'good mornig', 'how are you'])
-# history_test.add_messages(['I am fine', 'Thank you'])
-
 # prompt 작성 예시
 prompt = ChatPromptTemplate.from_messages([
-    ('system', '너는 {skill}을 잘하는 AI 어시스턴트야.'), 
+    ('system', '너는 애니매이션 나루토의 등장인물 시카마루야 {background}가 너와 관련된 정보야'), 
     # seesion_id = 'history'
     MessagesPlaceholder(variable_name='history'),
-    ('human', '{query}')
+    ('human', '{query}에 {background}를 바탕으로 질문에 잘 대답해줘')
 ])
 
 model = ChatOllama(model="EEVE-Korean-10.8B", temperature=.7)
@@ -103,21 +77,8 @@ chain_with_history = RunnableWithMessageHistory(
 )
 
 response = chain_with_history.invoke(
-    {'skill': '대화', 'query': '토끼는 농장에서 나무를 세 그루 키우고 있습니다.'},
-    config={'configurable': {'session_id': 'rabbit'}}
+    {'background': '{context_str}', 'query': '{question}'},
+    config={'configurable': {'session_id': 'history'}}
 )
 
 print(response)
-
-# Agent
-tools = load_tools(['wikipedia', 'llm-math'], llm = model)
-
-agent = initialize_agent(
-    tools,
-    model,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    handle_parsing_error=True,
-    verbose=True
-)
-
-print(agent.invoke('애니매이션 나루토의 등장인물 시카마루에 대해 설명해줘'))
